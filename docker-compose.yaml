@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+  pg-source:
+    build: containers/pg-source
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=source_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  pg-dest:
+    build: containers/pg-dest
+    ports:
+      - 15432:5432
+    environment:
+      - POSTGRES_DB=dest_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
