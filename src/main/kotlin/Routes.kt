@@ -5,7 +5,7 @@ import javax.sql.DataSource
 import org.apache.commons.dbcp2.BasicDataSource
 
 
-class Routes: RouteBuilder() {
+class Routes : RouteBuilder() {
     private val DATABASE_READER = ("debezium-postgres:{{database.hostname}}?"
             + "databaseHostname={{database.hostname}}"
             + "&databasePort={{database.port}}"
@@ -18,7 +18,8 @@ class Routes: RouteBuilder() {
             + "&offsetStorageFileName=/tmp/offset.dat"
             + "&offsetFlushIntervalMs=10000"
             + "&pluginName=pgoutput")
-    private val DB_WRITER = "direct:db-insert"
+    private val DB_WRITER = "direct:db-writer"
+    private val DB_HISTORY = "direct:db-history"
 
     override fun configure() {
 //        val prop = context.propertiesComponent
@@ -31,24 +32,15 @@ class Routes: RouteBuilder() {
 //            constant(Envelope.Operation.UPDATE.code())
 //        )
 
-//        from(DATABASE_READER)
-//            .routeId("DatabaseReader")
-//            .to("log://DatabaseReader")
-//            .log(LoggingLevel.DEBUG, "Incoming message \nBODY: \${body} \nHEADERS: \${headers}")
-//            .process(DebeziumProcessor())
-//            .filter(isCRUEvent)
-//                .convertBodyTo(Customer::class.java)
-//                .multicast().streaming().parallelProcessing()
-//                    .stopOnException().to(DB_WRITER)
-//                .end()
-//            .end()
-
         from(DATABASE_READER)
             .routeId("DatabaseReader")
             .to("log://DatabaseReader")
             .log(LoggingLevel.DEBUG, "Incoming message \nBODY: \${body} \nHEADERS: \${headers}")
-            .convertBodyTo(Customer::class.java)
-            .to(DB_WRITER)
+            .process(HistoryProcessor())
+//            .convertBodyTo(History::class.java)
+            .multicast().streaming().parallelProcessing()
+                .stopOnException().to(DB_WRITER, DB_HISTORY)
+            .end()
 
 
         from(DB_WRITER)
@@ -57,22 +49,33 @@ class Routes: RouteBuilder() {
             .to("log://dbwriter")
             .to("jdbc:outDataSource?useHeadersAsParameters=true")
 
+        from(DB_HISTORY)
+            .routeId("DbHistory")
+            .to("log://dbhistory")
+
     }
 
     private fun prepareRegistry() {
         context.typeConverterRegistry
-            .addTypeConverter(Customer::class.java, Struct::class.java, CustomerConverter())
+            .addTypeConverter(History::class.java, Struct::class.java, HistoryConverter())
 
-        context.registry.bind("outDataSource", DataSource::class.java, getDataSource("jdbc:postgresql://localhost:15432/dest_db"))
+//        context.typeConverterRegistry
+//            .addTypeConverter(Customer::class.java, Struct::class.java, CustomerConverter())
+
+        context.registry.bind(
+            "outDataSource",
+            DataSource::class.java,
+            getDataSource("jdbc:postgresql://localhost:15432/dest_db")
+        )
 //        context.registry.bind("outDataSource", DataSource::class.java, getDataSource("jdbc:postgresql://{{database_out.hostname}}:{{database_out.port}}/some_db"))
     }
 
     private fun getDataSource(connectURI: String): DataSource? {
         val ds = BasicDataSource()
-        ds.setDriverClassName("org.postgresql.Driver")
-        ds.setUsername("postgres")
-        ds.setPassword("postgres")
-        ds.setUrl(connectURI)
+        ds.driverClassName = "org.postgresql.Driver"
+        ds.url = connectURI
+        ds.username = "postgres"
+        ds.password = "postgres"
         return ds
     }
 

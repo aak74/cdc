@@ -13,3 +13,9 @@ up: ## Start containers
 
 down: ## Stop containers
 	docker-compose down
+
+remove: ## Remove offset file
+	rm /tmp/offset.dat
+
+restart: remove down up ## Remove offset file and recreate databases
+
