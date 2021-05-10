@@ -7,7 +7,7 @@ class TableProcessor : Processor {
         val history = exchange?.getIn()!!.body as History
         val tableName = getTableName(history.tableName)
         val body = when (history.operation) {
-            Envelope.Operation.READ.code() -> {
+            Envelope.Operation.READ.code(), Envelope.Operation.CREATE.code() -> {
                 getInsertSQL(tableName, history.data)
             }
             Envelope.Operation.UPDATE.code() -> {
