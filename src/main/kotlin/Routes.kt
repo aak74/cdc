@@ -14,7 +14,7 @@ class Routes : RouteBuilder() {
             + "&databaseDbname={{database.dbname}}"
             + "&databaseServerName={{database.hostname}}"
             + "&schemaWhitelist=public"
-            + "&tableWhitelist=public.customers"
+            + "&tableWhitelist=public.*"
             + "&offsetStorageFileName=/tmp/offset.dat"
             + "&offsetFlushIntervalMs=10000"
             + "&pluginName=pgoutput")
