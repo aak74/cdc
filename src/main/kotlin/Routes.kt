@@ -1,6 +1,5 @@
 import org.apache.camel.LoggingLevel
 import org.apache.camel.builder.RouteBuilder
-import org.apache.kafka.connect.data.Struct
 import javax.sql.DataSource
 import org.apache.commons.dbcp2.BasicDataSource
 
@@ -45,10 +44,14 @@ class Routes : RouteBuilder() {
 
         from(DB_WRITER)
             .routeId("DbWriter")
-            .process(TableProcessor())
 //            .process(CustomerProcessor())
             .to("log://dbwriter")
-            .to("jdbc:outDataSource?useHeadersAsParameters=true")
+            .filter()
+                .method(FilterBean::class.java, "validate")
+                .to("log://dbwriter-filtered")
+                .process(TableProcessor())
+                .to("jdbc:outDataSource?useHeadersAsParameters=true")
+            .end()
 
         from(DB_HISTORY)
             .routeId("DbHistory")
