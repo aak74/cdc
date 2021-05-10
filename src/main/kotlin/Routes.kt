@@ -45,7 +45,8 @@ class Routes : RouteBuilder() {
 
         from(DB_WRITER)
             .routeId("DbWriter")
-            .process(CustomerProcessor())
+            .process(TableProcessor())
+//            .process(CustomerProcessor())
             .to("log://dbwriter")
             .to("jdbc:outDataSource?useHeadersAsParameters=true")
 
@@ -56,8 +57,8 @@ class Routes : RouteBuilder() {
     }
 
     private fun prepareRegistry() {
-        context.typeConverterRegistry
-            .addTypeConverter(History::class.java, Struct::class.java, HistoryConverter())
+//        context.typeConverterRegistry
+//            .addTypeConverter(History::class.java, Struct::class.java, HistoryConverter())
 
 //        context.typeConverterRegistry
 //            .addTypeConverter(Customer::class.java, Struct::class.java, CustomerConverter())
@@ -67,10 +68,9 @@ class Routes : RouteBuilder() {
             DataSource::class.java,
             getDataSource("jdbc:postgresql://localhost:15432/dest_db")
         )
-//        context.registry.bind("outDataSource", DataSource::class.java, getDataSource("jdbc:postgresql://{{database_out.hostname}}:{{database_out.port}}/some_db"))
     }
 
-    private fun getDataSource(connectURI: String): DataSource? {
+    private fun getDataSource(connectURI: String): DataSource {
         val ds = BasicDataSource()
         ds.driverClassName = "org.postgresql.Driver"
         ds.url = connectURI
