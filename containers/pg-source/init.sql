@@ -28,7 +28,7 @@ VALUES (default,'Orange', 5, 11),
        (default,'Melon', 5, 18),
        (default,'Grape', 7, 21);
 
-CREATE PUBLICATION dbz_publication FOR TABLE public.customers, public.products;
+CREATE PUBLICATION dbz_publication FOR TABLE public.customers, public.products  WITH (publish = 'insert,update,delete');
 SELECT pg_create_logical_replication_slot('dbz_publication', 'pgoutput');
 
 CREATE ROLE debezium REPLICATION LOGIN;

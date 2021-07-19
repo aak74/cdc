@@ -1,5 +1,5 @@
 CREATE TABLE customers (
-    id INTEGER NOT NULL,
+    id INTEGER NOT NULL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -25,4 +25,6 @@ CREATE TABLE products (
     price INTEGER NOT NULL,
     user_id INTEGER NOT NULL
 );
+
+--CREATE SUBSCRIPTION dbz_subscription CONNECTION 'host=pg-source port=5432 dbname=source_db user=postgres password=postgres' PUBLICATION dbz_publication;
 
